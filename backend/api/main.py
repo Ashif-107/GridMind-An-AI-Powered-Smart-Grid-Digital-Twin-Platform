@@ -1,0 +1,91 @@
+import asyncio
+import sys
+import os
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+
+# Ensure the parent directory is in sys.path so we can import simulation
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from .routes import router, EngineHolder
+from .websockets import manager
+from .database import SessionLocal, TickHistory
+from simulation.engine import SimulationEngine
+from simulation.grid import CityGrid
+from simulation.models import (
+    House, Hospital, Factory, SolarFarm, WindFarm, BatteryBank, EVChargingStation
+)
+
+app = FastAPI(title="GridMind Digital Twin API")
+
+# Setup CORS for the frontend later
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(router)
+
+def setup_demo_grid() -> CityGrid:
+    grid = CityGrid()
+    for i in range(10): 
+        grid.add_device(House(f"house_{i}", f"House {i}", base_load=2.0))
+    grid.add_device(Hospital("hosp_1", "City Hospital"))
+    grid.add_device(Factory("fact_1", "Steel Plant"))
+    grid.add_device(SolarFarm("solar_1", "Eastside Solar", area_sqm=10000, efficiency=0.20))
+    grid.add_device(WindFarm("wind_1", "North Ridge Wind", rated_power=1000.0))
+    grid.add_device(BatteryBank("batt_1", "Central Battery", capacity_kwh=5000.0, max_c_rate=0.2))
+    grid.add_device(EVChargingStation("ev_1", "Downtown EV Station"))
+    return grid
+
+# Background task
+async def run_simulation_loop():
+    engine = EngineHolder.engine
+    db = SessionLocal()
+    try:
+        while True:
+            engine.step()
+            state = engine.get_state()
+            
+            # Broadcast over WebSocket
+            await manager.broadcast(state)
+            
+            # Persist to database
+            tick = TickHistory(
+                time_of_day=state["weather"]["time_of_day"],
+                condition=state["weather"]["condition"],
+                total_generation_kw=state["grid"]["total_generation_kw"],
+                total_consumption_kw=state["grid"]["total_consumption_kw"],
+                net_power_kw=state["grid"]["net_power_kw"]
+            )
+            db.add(tick)
+            db.commit()
+            
+            await asyncio.sleep(1.0)
+    except asyncio.CancelledError:
+        pass
+    finally:
+        db.close()
+
+@app.on_event("startup")
+async def startup_event():
+    # Initialize Engine
+    grid = setup_demo_grid()
+    EngineHolder.engine = SimulationEngine(grid)
+    EngineHolder.engine.weather.time_of_day = 5.0 # Start at 5am
+    
+    # Start async loop
+    asyncio.create_task(run_simulation_loop())
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Keep connection alive
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
