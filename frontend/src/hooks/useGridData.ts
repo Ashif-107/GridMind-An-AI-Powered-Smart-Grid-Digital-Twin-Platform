@@ -1,5 +1,17 @@
 import { useState, useEffect } from 'react';
 
+export interface GridDevice {
+  id: string;
+  name: string;
+  type: string;
+  is_online: boolean;
+  power_generated: number;
+  power_consumed: number;
+  net_power: number;
+  soc?: number;
+  capacity_kwh?: number;
+}
+
 export interface GridData {
   weather: {
     time_of_day: number;
@@ -12,7 +24,7 @@ export interface GridData {
     total_generation_kw: number;
     total_consumption_kw: number;
     net_power_kw: number;
-    devices: Record<string, unknown>;
+    devices: Record<string, GridDevice>;
   };
 }
 

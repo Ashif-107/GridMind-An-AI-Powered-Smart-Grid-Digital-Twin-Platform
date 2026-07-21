@@ -1,6 +1,6 @@
 'use client';
 
-import { GridData } from '@/hooks/useGridData';
+import { GridData, GridDevice } from '@/hooks/useGridData';
 
 import CityMap from '@/components/map/CityMap';
 
@@ -19,7 +19,7 @@ export default function LiveGrid({ data }: LiveGridProps) {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-light text-slate-200">Virtual City Overview</h2>
         
-        {battery && (
+        {battery?.soc !== undefined && (
           <div className="bg-slate-800/60 border border-slate-700/50 p-4 rounded-xl flex items-center gap-4">
             <div className="flex flex-col">
               <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Central Battery SoC</span>
@@ -45,7 +45,7 @@ export default function LiveGrid({ data }: LiveGridProps) {
         <div className="h-96 bg-slate-800/40 border border-slate-700/50 rounded-2xl p-6 shadow-lg">
           <h3 className="text-lg font-semibold text-slate-300 mb-4 border-b border-slate-700 pb-2">Active Node Status</h3>
           <div className="space-y-3 overflow-y-auto max-h-[18rem] pr-2">
-            {Object.values(data.grid.devices).map((device: any) => (
+            {Object.values(data.grid.devices).map((device: GridDevice) => (
               <div key={device.id} className="flex items-center justify-between p-3 bg-slate-800/80 rounded-lg border border-slate-700/50">
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-slate-200">{device.name}</span>

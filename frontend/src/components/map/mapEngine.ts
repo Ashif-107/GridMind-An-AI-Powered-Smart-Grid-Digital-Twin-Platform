@@ -1,4 +1,4 @@
-import { GridData } from '@/hooks/useGridData';
+import { GridData, GridDevice } from '@/hooks/useGridData';
 
 export interface MapNode {
   id: string;
@@ -70,7 +70,7 @@ export class MapEngine {
     this.data = data;
   }
 
-  spawnParticle(node: MapNode, deviceData: any) {
+  spawnParticle(node: MapNode, deviceData: GridDevice) {
     const isGenerating = deviceData.power_generated > 0;
     const isConsuming = deviceData.power_consumed > 0;
     if (!isGenerating && !isConsuming) return;
@@ -82,10 +82,10 @@ export class MapEngine {
 
     const bus = this.nodes[0]; // Center
     
-    let startX = isGenerating ? node.x : bus.x;
-    let startY = isGenerating ? node.y : bus.y;
-    let targetX = isGenerating ? bus.x : node.x;
-    let targetY = isGenerating ? bus.y : node.y;
+    const startX = isGenerating ? node.x : bus.x;
+    const startY = isGenerating ? node.y : bus.y;
+    const targetX = isGenerating ? bus.x : node.x;
+    const targetY = isGenerating ? bus.y : node.y;
 
     this.particles.push({
       x: startX,
@@ -170,6 +170,8 @@ export class MapEngine {
        
        if (this.data && node.id !== 'bus') {
            const dev = this.data.grid.devices[node.id];
+           if (!dev) return;
+
            if (!dev.is_online) {
                color = '#ef4444'; // red offline
            } else if (dev.power_generated > 0) {
