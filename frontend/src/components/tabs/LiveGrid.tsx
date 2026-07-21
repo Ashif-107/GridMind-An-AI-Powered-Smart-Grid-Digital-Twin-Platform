@@ -2,6 +2,8 @@
 
 import { GridData } from '@/hooks/useGridData';
 
+import CityMap from '@/components/map/CityMap';
+
 interface LiveGridProps {
   data: GridData | null;
 }
@@ -36,12 +38,8 @@ export default function LiveGrid({ data }: LiveGridProps) {
       </div>
 
       <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 h-96 bg-slate-800/40 border border-slate-700/50 rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-lg">
-          <div className="w-24 h-24 rounded-full bg-slate-700/50 border-2 border-dashed border-slate-600 flex items-center justify-center mb-6">
-            <span className="text-3xl">🗺️</span>
-          </div>
-          <h3 className="text-xl font-medium text-slate-300 mb-2">Interactive Map Area</h3>
-          <p className="text-slate-500 max-w-md">The 2D HTML5 Canvas map visualization will be embedded here in Phase 4. It will show live power flow animations between nodes.</p>
+        <div className="col-span-2 h-[500px]">
+          <CityMap data={data} />
         </div>
 
         <div className="h-96 bg-slate-800/40 border border-slate-700/50 rounded-2xl p-6 shadow-lg">
