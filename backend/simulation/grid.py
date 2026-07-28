@@ -1,9 +1,12 @@
 from typing import Dict
 from .models.base import Device
+from .pandapower_feeder import PandapowerFeeder
 
 class CityGrid:
     def __init__(self):
         self.devices: Dict[str, Device] = {}
+        self.feeder = PandapowerFeeder()
+        self.feeder_metrics = None
         
     def add_device(self, device: Device):
         self.devices[device.id] = device
@@ -11,6 +14,18 @@ class CityGrid:
     def step(self, weather_state: dict):
         for device in self.devices.values():
             device.step(weather_state)
+            
+        # Run pandapower load-flow for the sandbox feeder using some sample loads
+        # Here we just take the first two houses and one rooftop solar for the demo
+        house1_load = self.devices.get("house_0")
+        house2_load = self.devices.get("house_1")
+        solar_gen = self.devices.get("roof_solar_0")
+        
+        h1_kw = house1_load.power_consumed if house1_load else 2.0
+        h2_kw = house2_load.power_consumed if house2_load else 2.0
+        s_kw = solar_gen.power_generated if solar_gen else 0.0
+        
+        self.feeder_metrics = self.feeder.step(h1_kw, h2_kw, s_kw)
             
     def get_state(self) -> dict:
         total_generation = sum(d.power_generated for d in self.devices.values())
@@ -23,5 +38,6 @@ class CityGrid:
             "total_generation_kw": total_generation,
             "total_consumption_kw": total_consumption,
             "net_power_kw": net_power,
-            "devices": devices_state
+            "devices": devices_state,
+            "feeder_metrics": self.feeder_metrics
         }

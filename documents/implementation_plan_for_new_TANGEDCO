@@ -1,0 +1,40 @@
+# Revised Implementation Plan: TANGEDCO-Aligned Smart Grid Digital Twin
+
+Based on the faculty's feedback and the provided research, we are fundamentally pivoting GridMind from a generic power tracker to a **credible, physics-grounded decision-support sandbox** modeled after the Tamil Nadu grid (TANGEDCO/TANTRANSCO).
+
+This plan shifts our focus from simply renaming components to integrating real electrical engineering principles and state-of-the-art AI agent architectures.
+
+> [!IMPORTANT]
+> **User Review Required**
+> Please review this revised architecture. Integrating `pandapower` and the Multi-Agent system are significant changes. Confirm if you want to proceed with this scope for the next phase of development.
+
+## 1. Accurate Grid Physics & Device Modeling
+We must address the faculty's valid concerns about voltage, step-up transformers, and power flow.
+
+### A. Pandapower Integration
+- **Action:** Integrate `pandapower` (a Python-based power systems analysis tool used in industry and research) into the backend.
+- **Scope:** We will not run pandapower for the *entire* city grid (which is computationally heavy and unnecessary for a demo). Instead, we will simulate a specific **Distribution Feeder Network** (e.g., one transformer, a few houses, a local solar source) using pandapower to calculate actual AC voltage (per-unit), current, and line losses.
+- **Result:** This proves to the faculty that the simulation is grounded in real power-flow physics, neutralizing their concerns about accuracy.
+
+### B. Distinct Solar Models
+- **Action:** Split the generic `SolarFarm` into two distinct entities:
+  1. `UtilityScaleSolar`: Models an inverter AND a step-up transformer. It generates power at Medium Voltage (e.g., 11kV or 33kV) for grid transmission.
+  2. `RooftopSolar`: Models a residential inverter connecting directly to the Low Voltage network (230V/415V), simulating direct neighbor-to-neighbor flow via circuit physics.
+
+## 2. Multi-Agent AI Architecture
+Instead of a vague "AI optimizer", we will implement a structured, defensible multi-agent architecture inspired by current research (like the *Grid-Agent* paper).
+
+- **Forecasting Agent:** Predicts upcoming load and solar/wind generation based on the weather simulation.
+- **Optimization/Planning Agent:** Proposes grid remediation actions (e.g., "dispatch battery power to compensate for sudden cloud cover").
+- **Validator Agent:** The most critical agent for credibility. It takes the proposed action, runs a simulated power-flow check (via pandapower in a sandbox), and ensures no voltage limits or line capacities are violated before "executing" the action on the main grid state.
+- **Explainer Agent:** Translates the AI's actions into plain English for the operator dashboard (e.g., "Action taken to prevent voltage sag on Feeder B").
+
+## 3. TANGEDCO Commercial & Regulatory Grounding
+- **Action:** Implement basic TANGEDCO tariff structures in the backend.
+- **Net Metering:** Implement the billing logic for rooftop solar (credits for exports rather than direct P2P billing, aligning with current TN policy).
+- **Free Power Scheme:** Model the Agricultural Load with accurate subsidy tracking, reflecting TN's actual grid economics.
+
+## 4. Execution Phases
+1. **Phase 1: Physics Fix:** Implement `pandapower` for a single feeder and separate the Utility/Rooftop solar models. (This is the immediate priority to show the faculty).
+2. **Phase 2: Agent Infrastructure:** Build the backend routing for the AI agents (Forecasting -> Planning -> Validator).
+3. **Phase 3: Frontend Refit:** Update the dashboard to visualize the pandapower feeder (showing actual voltages) and an "AI Agent Console" explaining decisions.

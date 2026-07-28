@@ -40,6 +40,13 @@ class SimulationEngine:
                 print(f"Total Gen: {grid['total_generation_kw']:.1f} kW | "
                       f"Total Cons: {grid['total_consumption_kw']:.1f} kW | "
                       f"Net: {grid['net_power_kw']:.1f} kW")
+                      
+                feeder = grid.get("feeder_metrics")
+                if feeder:
+                    print(f"Physics [Pandapower] -> House1 V: {feeder['house1_v_pu']:.4f} p.u. | "
+                          f"House2 V: {feeder['house2_v_pu']:.4f} p.u. | "
+                          f"Trafo Load: {feeder['trafo_loading_percent']:.2f}%")
+                          
                 print("-" * 60)
                 
                 time.sleep(tick_interval_seconds)

@@ -7,26 +7,35 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from simulation.engine import SimulationEngine
 from simulation.grid import CityGrid
 from simulation.models import (
-    House, Hospital, Factory, SolarFarm, WindFarm, BatteryBank, EVChargingStation
+    ResidentialLoad, Hospital, IndustrialLoad, AgriculturalLoad,
+    UtilityScaleSolar, RooftopSolar, ThermalPowerPlant, NuclearPowerPlant,
+    BatteryBank, EVChargingStation
 )
 
 def setup_demo_grid() -> CityGrid:
     grid = CityGrid()
     
-    # Add consumers
-    for i in range(10): # 10 houses
-        grid.add_device(House(f"house_{i}", f"House {i}", base_load=2.0))
-        
-    grid.add_device(Hospital("hosp_1", "City Hospital"))
-    grid.add_device(Factory("fact_1", "Steel Plant"))
+    # 1. Residential & Agricultural Loads
+    for i in range(10): 
+        grid.add_device(ResidentialLoad(f"house_{i}", f"Chennai Res {i}", base_load=2.0))
+        # Add rooftop solar to some houses
+        if i % 3 == 0:
+            grid.add_device(RooftopSolar(f"roof_solar_{i}", f"Rooftop {i}"))
+            
+    grid.add_device(AgriculturalLoad("agri_1", "Cauvery Delta Pumps", pump_capacity_kw=15.0))
     
-    # Add producers
-    grid.add_device(SolarFarm("solar_1", "Eastside Solar", area_sqm=10000, efficiency=0.20)) # ~2000kW peak
-    grid.add_device(WindFarm("wind_1", "North Ridge Wind", rated_power=1000.0))
+    # 2. Industrial / Critical Loads
+    grid.add_device(Hospital("hosp_1", "Madurai Gen Hospital"))
+    grid.add_device(IndustrialLoad("fact_1", "Coimbatore Textile Mill"))
     
-    # Add storage & EVs
-    grid.add_device(BatteryBank("batt_1", "Central Battery", capacity_kwh=5000.0, max_c_rate=0.2))
-    grid.add_device(EVChargingStation("ev_1", "Downtown EV Station"))
+    # 3. Generation Projects (Utility Scale)
+    grid.add_device(UtilityScaleSolar("solar_1", "Kamuthi Solar Project", area_sqm=50000, efficiency=0.20))
+    grid.add_device(ThermalPowerPlant("thermal_1", "NLC Thermal Station", capacity_kw=50000.0))
+    grid.add_device(NuclearPowerPlant("nuke_1", "Kudankulam Nuclear", capacity_kw=100000.0))
+    
+    # 4. Storage & EVs
+    grid.add_device(BatteryBank("batt_1", "TANGEDCO Grid Battery", capacity_kwh=5000.0, max_c_rate=0.2))
+    grid.add_device(EVChargingStation("ev_1", "Tidel Park EV Station"))
     
     return grid
 

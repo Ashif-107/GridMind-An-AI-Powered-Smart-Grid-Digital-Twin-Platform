@@ -1,7 +1,7 @@
 from .base import Device
 import math
 
-class House(Device):
+class ResidentialLoad(Device):
     def __init__(self, device_id: str, name: str, base_load: float = 1.0):
         super().__init__(device_id, name)
         self.base_load = base_load # kW
@@ -45,7 +45,7 @@ class Hospital(Device):
         self.power_consumed = 50.0 # 50 kW
         self.power_generated = 0.0
 
-class Factory(Device):
+class IndustrialLoad(Device):
     def __init__(self, device_id: str, name: str):
         super().__init__(device_id, name)
         
@@ -61,4 +61,29 @@ class Factory(Device):
             self.power_consumed = 200.0 # 200 kW during shift
         else:
             self.power_consumed = 20.0 # Background load
+        self.power_generated = 0.0
+
+class AgriculturalLoad(Device):
+    """Represents farm pump sets, typically given free power at night or specific daytime blocks in TN."""
+    def __init__(self, device_id: str, name: str, pump_capacity_kw: float = 5.0):
+        super().__init__(device_id, name)
+        self.pump_capacity_kw = pump_capacity_kw
+        
+    def step(self, weather_state: dict):
+        if not self.is_online:
+            self.power_consumed = 0.0
+            self.power_generated = 0.0
+            return
+            
+        time_of_day = weather_state["time_of_day"]
+        
+        # In TN, agricultural power is typically supplied in blocks.
+        # E.g., 10 PM to 6 AM, and maybe a few hours in the day.
+        is_free_power_block = (22 <= time_of_day <= 24) or (0 <= time_of_day <= 6) or (12 <= time_of_day <= 14)
+        
+        if is_free_power_block:
+            self.power_consumed = self.pump_capacity_kw
+        else:
+            self.power_consumed = 0.0
+            
         self.power_generated = 0.0

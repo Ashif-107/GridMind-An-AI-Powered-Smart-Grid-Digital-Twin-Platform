@@ -1,10 +1,12 @@
 from .base import Device
 
-class SolarFarm(Device):
-    def __init__(self, device_id: str, name: str, area_sqm: float = 1000.0, efficiency: float = 0.20):
+class UtilityScaleSolar(Device):
+    """Utility scale solar project, typically includes step-up transformer to Medium Voltage (e.g., 11kV)."""
+    def __init__(self, device_id: str, name: str, area_sqm: float = 10000.0, efficiency: float = 0.20):
         super().__init__(device_id, name)
         self.area_sqm = area_sqm
         self.efficiency = efficiency
+        self.voltage_level_kv = 11.0 # Medium voltage
         
     def step(self, weather_state: dict):
         if not self.is_online:
@@ -12,8 +14,25 @@ class SolarFarm(Device):
             self.power_consumed = 0.0
             return
             
-        # Simplified NREL SAM approach: Output = Irradiance * Area * Efficiency
-        # Irradiance is in W/m2, we want kW
+        irradiance = weather_state["solar_irradiance"]
+        power_w = irradiance * self.area_sqm * self.efficiency
+        self.power_generated = power_w / 1000.0 # Convert to kW
+        self.power_consumed = 0.0
+
+class RooftopSolar(Device):
+    """Residential scale rooftop solar, outputs directly at Low Voltage (230V)."""
+    def __init__(self, device_id: str, name: str, area_sqm: float = 50.0, efficiency: float = 0.18):
+        super().__init__(device_id, name)
+        self.area_sqm = area_sqm
+        self.efficiency = efficiency
+        self.voltage_level_v = 230.0 # Low voltage
+        
+    def step(self, weather_state: dict):
+        if not self.is_online:
+            self.power_generated = 0.0
+            self.power_consumed = 0.0
+            return
+            
         irradiance = weather_state["solar_irradiance"]
         power_w = irradiance * self.area_sqm * self.efficiency
         self.power_generated = power_w / 1000.0 # Convert to kW
@@ -46,4 +65,36 @@ class WindFarm(Device):
             power_fraction = ((wind_speed - self.cut_in_speed) / (self.rated_speed - self.cut_in_speed)) ** 3
             self.power_generated = self.rated_power * power_fraction
             
+        self.power_consumed = 0.0
+
+class ThermalPowerPlant(Device):
+    """Large baseload power plant (e.g., NLC Thermal)"""
+    def __init__(self, device_id: str, name: str, capacity_kw: float = 50000.0):
+        super().__init__(device_id, name)
+        self.capacity_kw = capacity_kw
+        
+    def step(self, weather_state: dict):
+        if not self.is_online:
+            self.power_generated = 0.0
+            self.power_consumed = 0.0
+            return
+        
+        # Runs constantly at high load
+        self.power_generated = self.capacity_kw * 0.85 # 85% plant load factor
+        self.power_consumed = 0.0
+
+class NuclearPowerPlant(Device):
+    """Steady baseload generation (e.g., Kudankulam)"""
+    def __init__(self, device_id: str, name: str, capacity_kw: float = 100000.0):
+        super().__init__(device_id, name)
+        self.capacity_kw = capacity_kw
+        
+    def step(self, weather_state: dict):
+        if not self.is_online:
+            self.power_generated = 0.0
+            self.power_consumed = 0.0
+            return
+        
+        # Nuclear runs constantly at near full capacity
+        self.power_generated = self.capacity_kw * 0.95 
         self.power_consumed = 0.0
