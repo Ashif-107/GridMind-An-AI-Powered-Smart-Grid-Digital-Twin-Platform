@@ -47,13 +47,9 @@ def setup_demo_grid() -> CityGrid:
     grid.add_device(Hospital("hosp_1", "Madurai Gen Hospital"))
     grid.add_device(IndustrialLoad("fact_1", "Coimbatore Textile Mill"))
     
-    # 2.5 Macro-Grid Sink
-    grid.add_device(UnseenCityLoad("city_sink", "Rest of Tamil Nadu Load", base_load_kw=135000.0))
-    
     # 3. Generation Projects (Utility Scale)
-    grid.add_device(UtilityScaleSolar("solar_1", "Kamuthi Solar Project", area_sqm=50000, efficiency=0.20))
-    grid.add_device(ThermalPowerPlant("thermal_1", "NLC Thermal Station", capacity_kw=50000.0))
-    grid.add_device(NuclearPowerPlant("nuke_1", "Kudankulam Nuclear", capacity_kw=100000.0))
+    # Reduced area to 5,000 sqm so it generates ~1000 kW (1 MW) peak for our small city grid
+    grid.add_device(UtilityScaleSolar("solar_1", "Kamuthi Solar Project", area_sqm=5000, efficiency=0.20))
     
     # 4. Storage & EVs
     grid.add_device(BatteryBank("batt_1", "TANGEDCO Grid Battery", capacity_kwh=5000.0, max_c_rate=0.2))

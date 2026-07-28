@@ -42,9 +42,6 @@ class AgentManager:
                 # Tell Planner it was rejected so it can try a fallback next loop
                 context["last_rejection"] = validated_action.get("reason")
         
-        # 4. Explainer Agent generates logs
-        context = self.explainer.step(grid_state, context)
-        
         # Apply the validated action to the actual grid
         # Phase 3 scope: single dispatchable battery; multi-battery allocation is future work
         validated_action = context.get("validated_action")
@@ -62,6 +59,9 @@ class AgentManager:
                 # Pass actual amount back into context so explainer (or next tick) knows
                 validated_action["actual_amount_kw"] = actual_amt
                 context["validated_action"] = validated_action
+                
+        # 4. Explainer Agent generates logs (MUST run after battery command so it sees actual_amount_kw)
+        context = self.explainer.step(grid_state, context)
                     
         # Collect any new logs
         new_log = context.get("new_log")

@@ -28,31 +28,8 @@ export class MapEngine {
   }
 
   initNodes() {
-    // Define positions (assuming a 800x600 canvas space, we will scale it)
-    const centerX = 400;
-    const centerY = 300;
-    
-    this.nodes = [
-      { id: "bus", x: centerX, y: centerY, type: "Substation" },
-      { id: "hosp_1", x: centerX, y: centerY - 100, type: "Hospital" },
-      { id: "fact_1", x: centerX + 150, y: centerY - 50, type: "Factory" },
-      { id: "batt_1", x: centerX - 120, y: centerY + 50, type: "BatteryBank" },
-      { id: "ev_1", x: centerX - 150, y: centerY - 50, type: "EVChargingStation" },
-      { id: "solar_1", x: centerX + 250, y: centerY + 150, type: "SolarFarm" },
-      { id: "wind_1", x: centerX - 250, y: centerY - 200, type: "WindFarm" },
-    ];
-
-    // Add 10 houses in a circle at the bottom
-    for(let i=0; i<10; i++) {
-       const angle = Math.PI * (0.2 + (i / 10) * 0.6); // Bottom arc
-       const r = 200;
-       this.nodes.push({
-         id: `house_${i}`,
-         x: centerX + Math.cos(angle) * r,
-         y: centerY + Math.sin(angle) * r,
-         type: "House"
-       });
-    }
+    // We will initialize nodes dynamically when data arrives in updateData
+    this.nodes = [];
   }
 
   initRain() {
@@ -68,6 +45,48 @@ export class MapEngine {
 
   updateData(data: GridData) {
     this.data = data;
+    
+    // Build nodes dynamically if not built yet
+    if (this.nodes.length === 0 && data.grid.devices) {
+       const centerX = 400;
+       const centerY = 300;
+       
+       this.nodes.push({ id: "bus", x: centerX, y: centerY, type: "Substation" });
+       
+       let houseCount = 0;
+       let solarCount = 0;
+       let othersCount = 0;
+       
+       for (const [id, dev] of Object.entries(data.grid.devices)) {
+           if (id.startsWith("house_")) {
+               const angle = Math.PI * (0.2 + (houseCount / 10) * 0.6);
+               this.nodes.push({ id, x: centerX + Math.cos(angle) * 200, y: centerY + Math.sin(angle) * 200, type: "House" });
+               houseCount++;
+           } else if (id.startsWith("roof_solar_")) {
+               const angle = Math.PI * (0.2 + (solarCount / 10) * 0.6);
+               this.nodes.push({ id, x: centerX + Math.cos(angle) * 230, y: centerY + Math.sin(angle) * 230, type: "HouseSolar" });
+               solarCount++;
+           } else if (id.startsWith("batt_")) {
+               this.nodes.push({ id, x: centerX - 120, y: centerY + 50, type: "BatteryBank" });
+           } else if (id.startsWith("ev_")) {
+               this.nodes.push({ id, x: centerX - 150, y: centerY - 50, type: "EVChargingStation" });
+           } else if (id.startsWith("hosp_")) {
+               this.nodes.push({ id, x: centerX, y: centerY - 100, type: "Hospital" });
+           } else if (id.startsWith("fact_")) {
+               this.nodes.push({ id, x: centerX + 150, y: centerY - 50, type: "Factory" });
+           } else if (id.startsWith("agri_")) {
+               this.nodes.push({ id, x: centerX + 200, y: centerY + 50, type: "Agri" });
+           } else if (id.startsWith("solar_")) {
+               this.nodes.push({ id, x: centerX + 250, y: centerY + 150, type: "SolarFarm" });
+           } else if (id.startsWith("thermal_") || id.startsWith("nuke_")) {
+               this.nodes.push({ id, x: centerX - 250, y: centerY - 200, type: "HeavyGen" });
+           } else {
+               const angle = Math.PI * 2 * (othersCount / 5);
+               this.nodes.push({ id, x: centerX + Math.cos(angle) * 150, y: centerY + Math.sin(angle) * 150, type: "Other" });
+               othersCount++;
+           }
+       }
+    }
   }
 
   spawnParticle(node: MapNode, deviceData: GridDevice) {
@@ -186,8 +205,12 @@ export class MapEngine {
            if (node.type === 'Factory') { radius = 14; text = 'F'; }
            if (node.type === 'SolarFarm') { radius = 18; text = '☀️'; }
            if (node.type === 'WindFarm') { radius = 18; text = '🌬️'; }
+           if (node.type === 'HeavyGen') { radius = 20; text = '🏭'; }
            if (node.type === 'BatteryBank') { radius = 14; text = '🔋'; }
+           if (node.type === 'EVChargingStation') { radius = 12; text = '⚡'; }
            if (node.type === 'House') { radius = 8; }
+           if (node.type === 'HouseSolar') { radius = 10; text = '☀️'; }
+           if (node.type === 'Agri') { radius = 12; text = '🌾'; }
        } else if (node.id === 'bus') {
            color = '#a855f7'; // purple substation
            radius = 20;

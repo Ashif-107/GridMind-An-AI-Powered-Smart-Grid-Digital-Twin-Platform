@@ -26,8 +26,8 @@ export default function Home() {
         
         <div className="flex-1 w-full max-w-7xl mx-auto">
           {activeTab === 'live' && <LiveGrid data={data} />}
-          {activeTab === 'analytics' && <Analytics />}
-          {activeTab === 'ai' && <AICommand />}
+          {activeTab === 'analytics' && <Analytics data={data} history={history} />}
+          {activeTab === 'ai' && <AICommand data={data} />}
         </div>
       </div>
     </main>

@@ -8,6 +8,7 @@ class ExplainerAgent(GridAgent):
     def __init__(self):
         super().__init__("Explainer")
         self.message_id = 0
+        self.tick_count = 0
         
     def step(self, grid_state: Dict[str, Any], context: Dict[str, Any] = None) -> Dict[str, Any]:
         if context is None:
@@ -15,6 +16,8 @@ class ExplainerAgent(GridAgent):
             
         validated_action = context.get("validated_action")
         forecast = context.get("forecast", {})
+        
+        self.tick_count += 1
         
         # We only generate a log if there's an active decision, or occasionally for status
         log_message = None
@@ -37,9 +40,12 @@ class ExplainerAgent(GridAgent):
             elif "rejected" in reason.lower():
                 log_message = reason # Use the validator's rejection string
                 level = "ERROR"
+            elif action_type == "IDLE" and self.tick_count % 10 == 0:
+                log_message = "Grid is balanced and stable. No remediation required."
+                level = "INFO"
                 
         # If no action, maybe generate a forecast warning
-        if not log_message and forecast.get("status") == "DEFICIT_WARNING":
+        if not log_message and forecast.get("status") == "DEFICIT_WARNING" and self.tick_count % 5 == 0:
             log_message = f"Forecaster Alert: Grid deficit predicted in upcoming hours (Trend: {forecast.get('trend_kw_per_hour', 0):.0f} kW/hr)."
             level = "WARNING"
             

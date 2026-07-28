@@ -18,7 +18,7 @@ class PlanningAgent(GridAgent):
         # Calculate Dynamic Pricing (based on Net Power)
         if current_net < 0:
             current_price = 8.0 # Deficit: Price spikes
-        elif current_net > 20000:
+        elif current_net > 100:
             current_price = 3.0 # Surplus: Price drops
         else:
             current_price = 5.0 # Normal TN rate
@@ -28,10 +28,8 @@ class PlanningAgent(GridAgent):
         last_rejection = context.get("last_rejection")
         proposed_action = None
         
-        # Determine base target amount
-        target_amt = 5000 # Default max
-        if current_net < 0:
-            target_amt = abs(current_net) + 500
+        # Determine base target amount: perfectly match the surplus or deficit
+        target_amt = abs(current_net)
             
         # Fallback Logic: if previous attempt in this tick was rejected, try half the amount
         if last_rejection:

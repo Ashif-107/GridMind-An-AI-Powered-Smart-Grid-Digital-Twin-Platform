@@ -32,12 +32,19 @@ class CityGrid:
         total_consumption = sum(d.power_consumed for d in self.devices.values())
         net_power = total_generation - total_consumption
         
+        # Calculate natural net power (excluding batteries) to prevent AI control loop oscillations
+        from .models.storage import BatteryBank
+        natural_generation = sum(d.power_generated for d in self.devices.values() if not isinstance(d, BatteryBank))
+        natural_consumption = sum(d.power_consumed for d in self.devices.values() if not isinstance(d, BatteryBank))
+        natural_net_power = natural_generation - natural_consumption
+        
         devices_state = {d_id: d.get_state() for d_id, d in self.devices.items()}
         
         return {
             "total_generation_kw": total_generation,
             "total_consumption_kw": total_consumption,
             "net_power_kw": net_power,
+            "natural_net_power_kw": natural_net_power,
             "devices": devices_state,
             "feeder_metrics": self.feeder_metrics
         }

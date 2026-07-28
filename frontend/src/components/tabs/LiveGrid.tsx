@@ -40,6 +40,32 @@ export default function LiveGrid({ data }: LiveGridProps) {
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 h-[500px]">
           <CityMap data={data} />
+          
+          {/* Pandapower Physics Overlay */}
+          {data.grid.feeder_metrics && (
+            <div className="mt-4 bg-slate-800/40 backdrop-blur-md border border-slate-700/50 p-4 rounded-xl flex items-center justify-around shadow-lg">
+              <div className="flex flex-col items-center">
+                <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">House 1 (Load) V</span>
+                <span className={`text-lg font-bold ${data.grid.feeder_metrics.house1_v_pu < 0.95 || data.grid.feeder_metrics.house1_v_pu > 1.05 ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {data.grid.feeder_metrics.house1_v_pu.toFixed(4)} p.u.
+                </span>
+              </div>
+              <div className="w-px h-8 bg-slate-700"></div>
+              <div className="flex flex-col items-center">
+                <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">House 2 (Solar) V</span>
+                <span className={`text-lg font-bold ${data.grid.feeder_metrics.house2_v_pu < 0.95 || data.grid.feeder_metrics.house2_v_pu > 1.05 ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {data.grid.feeder_metrics.house2_v_pu.toFixed(4)} p.u.
+                </span>
+              </div>
+              <div className="w-px h-8 bg-slate-700"></div>
+              <div className="flex flex-col items-center">
+                <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Trafo Load</span>
+                <span className={`text-lg font-bold ${data.grid.feeder_metrics.trafo_loading_percent > 95 ? 'text-red-400' : 'text-blue-400'}`}>
+                  {data.grid.feeder_metrics.trafo_loading_percent.toFixed(1)}%
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="h-96 bg-slate-800/40 border border-slate-700/50 rounded-2xl p-6 shadow-lg">

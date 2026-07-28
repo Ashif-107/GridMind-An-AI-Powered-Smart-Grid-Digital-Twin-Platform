@@ -13,7 +13,8 @@ class ForecastingAgent(GridAgent):
         if context is None:
             context = {}
             
-        net_power = grid_state.get("net_power_kw", 0.0)
+        # Use natural_net_power_kw so the AI doesn't get confused by the battery's own output!
+        net_power = grid_state.get("natural_net_power_kw", grid_state.get("net_power_kw", 0.0))
         self.history_net.append(net_power)
         if len(self.history_net) > 4: # keep last 4 ticks (representing 1 hour of trend in our fast simulation)
             self.history_net.pop(0)
@@ -27,9 +28,9 @@ class ForecastingAgent(GridAgent):
         predicted_net = net_power + trend
         
         # Determine status
-        if predicted_net < -1000:
+        if predicted_net < -50:
             status = "DEFICIT_WARNING"
-        elif predicted_net > 50000:
+        elif predicted_net > 100:
             status = "HIGH_SURPLUS"
         else:
             status = "STABLE"
