@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from simulation.engine import SimulationEngine
 from simulation.grid import CityGrid
 from simulation.models import (
-    ResidentialLoad, Hospital, IndustrialLoad, AgriculturalLoad,
+    ResidentialLoad, Hospital, IndustrialLoad, AgriculturalLoad, UnseenCityLoad,
     UtilityScaleSolar, RooftopSolar, ThermalPowerPlant, NuclearPowerPlant,
     BatteryBank, EVChargingStation
 )
@@ -27,6 +27,9 @@ def setup_demo_grid() -> CityGrid:
     # 2. Industrial / Critical Loads
     grid.add_device(Hospital("hosp_1", "Madurai Gen Hospital"))
     grid.add_device(IndustrialLoad("fact_1", "Coimbatore Textile Mill"))
+    
+    # 2.5 Macro-Grid Sink
+    grid.add_device(UnseenCityLoad("city_sink", "Rest of Tamil Nadu Load", base_load_kw=135000.0))
     
     # 3. Generation Projects (Utility Scale)
     grid.add_device(UtilityScaleSolar("solar_1", "Kamuthi Solar Project", area_sqm=50000, efficiency=0.20))
