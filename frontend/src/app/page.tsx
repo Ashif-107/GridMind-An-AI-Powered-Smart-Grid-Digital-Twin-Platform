@@ -9,7 +9,7 @@ import Analytics from '@/components/tabs/Analytics';
 import AICommand from '@/components/tabs/AICommand';
 
 export default function Home() {
-  const { data, connected } = useGridData();
+  const { data, history, connected } = useGridData();
   const [activeTab, setActiveTab] = useState('live');
 
   return (
