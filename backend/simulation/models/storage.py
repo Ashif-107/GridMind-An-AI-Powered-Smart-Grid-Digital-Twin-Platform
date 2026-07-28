@@ -11,6 +11,34 @@ class BatteryBank(Device):
         # In Phase 5, the AI will set this.
         self.target_power = 0.0 # Positive = discharge (generate), Negative = charge (consume)
         
+    def command(self, action_type: str, amount_kw: float) -> float:
+        """
+        Commands the battery and returns the actual amount of power it can supply/absorb
+        this tick, clamping against max C-rate and remaining State of Charge.
+        """
+        if action_type == "IDLE":
+            self.target_power = 0.0
+            return 0.0
+            
+        dt_hours = 0.25 # Should ideally match engine, hardcoded for Phase 1
+        target = amount_kw if action_type == "DISCHARGE_BATTERY" else -amount_kw
+        actual_power = max(-self.max_power, min(self.max_power, target))
+        
+        # Check energy bounds
+        if actual_power > 0: # Discharge
+            energy_needed = (actual_power * dt_hours) / (self.efficiency ** 0.5)
+            if self.soc * self.capacity_kwh < energy_needed:
+                available_energy = self.soc * self.capacity_kwh
+                actual_power = (available_energy * (self.efficiency ** 0.5)) / dt_hours
+        elif actual_power < 0: # Charge
+            energy_added = (abs(actual_power) * dt_hours) * (self.efficiency ** 0.5)
+            if self.soc * self.capacity_kwh + energy_added > self.capacity_kwh:
+                room_left = (1.0 - self.soc) * self.capacity_kwh
+                actual_power = -(room_left / (self.efficiency ** 0.5)) / dt_hours
+                
+        self.target_power = actual_power
+        return abs(actual_power)
+        
     def step(self, weather_state: dict):
         if not self.is_online:
             self.power_generated = 0.0

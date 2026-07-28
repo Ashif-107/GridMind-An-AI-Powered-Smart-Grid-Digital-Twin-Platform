@@ -1,21 +1,32 @@
 import time
 from .weather import WeatherEngine
 from .grid import CityGrid
+from .agent_manager import AgentManager
 
 class SimulationEngine:
     def __init__(self, grid: CityGrid):
         self.weather = WeatherEngine()
         self.grid = grid
+        self.agent_manager = AgentManager()
+        self.last_agent_output = {}
+        self.last_printed_log_id = -1
         
     def step(self):
         self.weather.step()
         weather_state = self.weather.get_state()
         self.grid.step(weather_state)
         
+        # Run AI Pipeline
+        grid_state = self.grid.get_state()
+        # Mix in weather for the forecaster
+        grid_state["weather"] = weather_state 
+        self.last_agent_output = self.agent_manager.step(grid_state, self.grid)
+        
     def get_state(self) -> dict:
         return {
             "weather": self.weather.get_state(),
-            "grid": self.grid.get_state()
+            "grid": self.grid.get_state(),
+            "ai_agents": self.last_agent_output
         }
         
     def run(self, tick_interval_seconds: float = 1.0):
@@ -46,6 +57,14 @@ class SimulationEngine:
                     print(f"Physics [Pandapower] -> House1 V: {feeder['house1_v_pu']:.4f} p.u. | "
                           f"House2 V: {feeder['house2_v_pu']:.4f} p.u. | "
                           f"Trafo Load: {feeder['trafo_loading_percent']:.2f}%")
+                          
+                # Print recent AI Agent Logs
+                ai_logs = state.get("ai_agents", {}).get("logs", [])
+                if ai_logs:
+                    latest_log = ai_logs[-1]
+                    if latest_log['id'] != self.last_printed_log_id:
+                        print(f"[AI {latest_log['agent']}] {latest_log['message']}")
+                        self.last_printed_log_id = latest_log['id']
                           
                 print("-" * 60)
                 

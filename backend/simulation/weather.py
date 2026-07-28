@@ -2,8 +2,8 @@ import math
 
 class WeatherEngine:
     def __init__(self):
-        # We start at midnight (hour 0)
-        self.time_of_day = 0.0
+        # 0.0 to 24.0. Start at 11:00 to immediately see peak load / deficit behavior
+        self.time_of_day = 11.0 
         self.tick_resolution_hours = 0.25 # 15 mins per tick
         self.condition = "Normal"
         

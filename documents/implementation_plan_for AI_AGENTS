@@ -1,0 +1,56 @@
+# Phase 3: Multi-Agent AI System (Implementation Plan)
+
+This phase transforms the project from a simple "physics simulation" into a true **AI-Powered Smart Grid Digital Twin**. We will introduce three distinct AI Agents that observe the live simulation data and make autonomous decisions, mimicking real TANGEDCO grid operators.
+
+## Open Questions
+- Do we want to implement these agents using actual LLMs (like OpenAI/Google Gemini APIs) to generate natural language explanations of their actions, or should we use rule-based/statistical logic (faster, cheaper, more reliable for a continuous simulation loop)? 
+  > [!TIP]
+  > I highly recommend **Rule-Based/Statistical Logic** for the core loop (so the simulation runs fast and free), but we can have the agents generate "AI Log Messages" that sound like real operator decisions.
+
+## Proposed Architecture (4-Agent System)
+
+We will create a new directory: `backend/simulation/agents/`. We will build an `AgentManager` that runs every simulation tick, collecting the current grid state and orchestrating these 4 agents as originally planned:
+
+### 1. Forecasting Agent (`forecaster.py`)
+- **Purpose:** Predict upcoming load and generation based on weather simulation and historical data.
+- **Why Rule-Based/Statistical is Accurate here:** We will use statistical forecasting (e.g., trend analysis based on the time-of-day and weather profile) rather than a black-box LLM. This is exactly how real grid SCADA systems predict short-term load.
+
+### 2. Optimization / Planning Agent (`planner.py`)
+- **Purpose:** Proposes grid remediation actions to balance supply and demand.
+- **Logic:** If `Net Power < 0` (deficit), it proposes: *"Dispatch 2000kW from BatteryBank."*
+- **Why Rule-Based is Accurate here:** Real power grids rely on deterministic algorithms (like linear programming or rule-based expert systems). If a grid drops in frequency, the response must be instant and guaranteed, which rule-based systems provide safely.
+
+### 3. Validator Agent (`validator.py`)
+- **Purpose:** The most critical agent for engineering credibility. Before any proposed action is executed, this agent checks it against physical constraints.
+- **Logic:** It takes the Planner's proposed action (e.g., discharging a battery) and quickly references the `pandapower_feeder` metrics. If the action would cause a voltage violation (e.g., pushing voltage above 1.05 p.u. locally), the Validator rejects the plan.
+
+### 4. Explainer Agent (`explainer.py`)
+- **Purpose:** Translates the AI's internal logic and actions into plain English for the operator dashboard.
+- **Logic:** It takes the validated plan and generates human-readable logs: *"Action Approved: Discharging Central Battery to compensate for sudden cloud cover and prevent voltage sag."*
+
+## Integration Plan
+
+#### [NEW] `backend/simulation/agents/base.py`
+- Abstract base class for all agents.
+
+#### [NEW] `backend/simulation/agents/forecaster.py`
+- Implements the Forecasting Agent.
+
+#### [NEW] `backend/simulation/agents/planner.py`
+- Implements the Optimization/Planning Agent.
+
+#### [NEW] `backend/simulation/agents/validator.py`
+- Implements the Validator Agent.
+
+#### [NEW] `backend/simulation/agents/explainer.py`
+- Implements the Explainer Agent.
+
+#### [NEW] `backend/simulation/agent_manager.py`
+- Central controller that orchestrates the 4 agents in a pipeline: Forecaster -> Planner -> Validator -> Explainer.
+
+#### [MODIFY] `backend/simulation/engine.py`
+- Inject the `AgentManager`.
+
+## Verification Plan
+1. **Automated Logs:** Run `main_phase1.py` and verify in the terminal that when Net Power goes negative, the Balancing Agent automatically triggers a battery discharge event.
+2. **State Output:** Verify that the JSON state output includes the new dynamic `current_price` and a list of `agent_logs`.
