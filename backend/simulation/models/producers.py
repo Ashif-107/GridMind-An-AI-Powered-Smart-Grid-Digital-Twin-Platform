@@ -98,3 +98,19 @@ class NuclearPowerPlant(Device):
         # Nuclear runs constantly at near full capacity
         self.power_generated = self.capacity_kw * 0.95 
         self.power_consumed = 0.0
+
+class HydroPowerPlant(Device):
+    """Small run-of-the-river hydro plant for steady green baseload."""
+    def __init__(self, device_id: str, name: str, capacity_kw: float = 200.0):
+        super().__init__(device_id, name)
+        self.capacity_kw = capacity_kw
+        
+    def step(self, weather_state: dict):
+        if not self.is_online:
+            self.power_generated = 0.0
+            self.power_consumed = 0.0
+            return
+        
+        # Hydro runs constantly at moderate load
+        self.power_generated = self.capacity_kw * 0.80 
+        self.power_consumed = 0.0

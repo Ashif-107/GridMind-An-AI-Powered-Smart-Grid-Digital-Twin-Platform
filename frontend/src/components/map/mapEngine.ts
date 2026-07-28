@@ -78,7 +78,7 @@ export class MapEngine {
                this.nodes.push({ id, x: centerX + 200, y: centerY + 50, type: "Agri" });
            } else if (id.startsWith("solar_")) {
                this.nodes.push({ id, x: centerX + 250, y: centerY + 150, type: "SolarFarm" });
-           } else if (id.startsWith("thermal_") || id.startsWith("nuke_")) {
+           } else if (id.startsWith("thermal_") || id.startsWith("nuke_") || id.startsWith("hydro_")) {
                this.nodes.push({ id, x: centerX - 250, y: centerY - 200, type: "HeavyGen" });
            } else {
                const angle = Math.PI * 2 * (othersCount / 5);

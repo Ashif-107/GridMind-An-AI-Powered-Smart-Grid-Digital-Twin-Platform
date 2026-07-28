@@ -28,8 +28,9 @@ class PlanningAgent(GridAgent):
         last_rejection = context.get("last_rejection")
         proposed_action = None
         
-        # Determine base target amount: perfectly match the surplus or deficit
-        target_amt = abs(current_net)
+        # Determine base target amount: perfectly match the *predicted* surplus or deficit to fix the 1-tick delay lag!
+        predicted_net = forecast.get("predicted_net", current_net)
+        target_amt = abs(predicted_net)
             
         # Fallback Logic: if previous attempt in this tick was rejected, try half the amount
         if last_rejection:
@@ -37,13 +38,13 @@ class PlanningAgent(GridAgent):
             target_amt = prev_proposed.get("amount_kw", target_amt) / 2.0
             
         # Rule-Based Planning Logic - completely trusting Forecaster status
-        if status == "DEFICIT_WARNING" and target_amt > 100:
+        if status == "DEFICIT_WARNING" and target_amt > 1.0:
             proposed_action = {
                 "type": "DISCHARGE_BATTERY",
                 "amount_kw": target_amt,
                 "reason": "Grid deficit predicted or occurring."
             }
-        elif status == "HIGH_SURPLUS" and target_amt > 100:
+        elif status == "HIGH_SURPLUS" and target_amt > 1.0:
             proposed_action = {
                 "type": "CHARGE_BATTERY",
                 "amount_kw": target_amt,

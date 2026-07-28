@@ -19,18 +19,22 @@ class ForecastingAgent(GridAgent):
         if len(self.history_net) > 4: # keep last 4 ticks (representing 1 hour of trend in our fast simulation)
             self.history_net.pop(0)
             
-        # Basic statistical forecast: Calculate the trend rate of change
-        trend = 0
-        if len(self.history_net) == 4:
-            trend = self.history_net[-1] - self.history_net[0]
+        # Basic statistical forecast: Calculate the trend rate of change per tick
+        trend_per_tick = 0
+        if len(self.history_net) >= 2:
+            trend_per_tick = self.history_net[-1] - self.history_net[-2]
             
-        # Predict net power 4 ticks from now based on linear trend
-        predicted_net = net_power + trend
+        trend_kw_per_hour = 0
+        if len(self.history_net) == 4:
+            trend_kw_per_hour = self.history_net[-1] - self.history_net[0]
+            
+        # Predict net power exactly ONE tick from now
+        predicted_net = net_power + trend_per_tick
         
         # Determine status
-        if predicted_net < -50:
+        if predicted_net < -1.0:
             status = "DEFICIT_WARNING"
-        elif predicted_net > 100:
+        elif predicted_net > 1.0:
             status = "HIGH_SURPLUS"
         else:
             status = "STABLE"
@@ -38,7 +42,7 @@ class ForecastingAgent(GridAgent):
         context["forecast"] = {
             "current_net": net_power,
             "predicted_net": predicted_net,
-            "trend_kw_per_hour": trend,
+            "trend_kw_per_hour": trend_kw_per_hour,
             "status": status
         }
         

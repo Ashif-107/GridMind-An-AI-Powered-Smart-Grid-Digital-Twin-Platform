@@ -15,7 +15,7 @@ from simulation.grid import CityGrid
 from simulation.models import (
     ResidentialLoad, Hospital, IndustrialLoad, AgriculturalLoad, UnseenCityLoad,
     UtilityScaleSolar, RooftopSolar, ThermalPowerPlant, NuclearPowerPlant,
-    BatteryBank, EVChargingStation
+    BatteryBank, EVChargingStation, HydroPowerPlant
 )
 
 app = FastAPI(title="GridMind Digital Twin API")
@@ -50,6 +50,7 @@ def setup_demo_grid() -> CityGrid:
     # 3. Generation Projects (Utility Scale)
     # Reduced area to 5,000 sqm so it generates ~1000 kW (1 MW) peak for our small city grid
     grid.add_device(UtilityScaleSolar("solar_1", "Kamuthi Solar Project", area_sqm=5000, efficiency=0.20))
+    grid.add_device(HydroPowerPlant("hydro_1", "Bhavani Small Hydro", capacity_kw=300.0))
     
     # 4. Storage & EVs
     grid.add_device(BatteryBank("batt_1", "TANGEDCO Grid Battery", capacity_kwh=5000.0, max_c_rate=0.2))
