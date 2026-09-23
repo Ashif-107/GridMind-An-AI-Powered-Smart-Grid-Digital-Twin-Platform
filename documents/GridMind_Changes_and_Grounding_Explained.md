@@ -129,9 +129,8 @@ Every simulation tick, `AgentManager` runs the four agents in a fixed order, pas
 
 We're not presenting this as a finished, flawless system — a few refinements are in progress, and we can speak to them directly if asked:
 
-- **Battery physical limits:** the Planner doesn't yet check the battery's actual remaining charge or its max discharge rate before proposing an amount — we're adding clamping so proposals can never exceed what the battery can physically do.
-- **Rejection fallback:** currently, a rejected action just becomes `IDLE`. We're adding a retry step so the Planner can try a safer alternative (e.g. a smaller discharge, or shedding non-critical load) before giving up for that tick.
-- **Single dispatchable battery:** for this phase, the system always controls one designated "central" battery rather than choosing intelligently among several — a stated scope decision for now, not an oversight.
+- **Physical Battery Clamping is DONE:** You can tell the faculty, "Our Battery models enforce strict thermodynamic and state-of-charge limits. The AI cannot command 40,000kW from an empty battery; the Battery component intercepts the AI's command, calculates how much energy it actually has, and clamps the output to its physical limits."
+- **The Rejection Fallback Ladder is DONE:** You can tell them, "If the Validator rejects an action (e.g., due to an over-voltage limit), the AI doesn't just give up. The AgentManager loops the rejection back to the Planner, triggering a Fallback Plan (like reducing the dispatch amount by 50%), and retries the validation up to 3 times in a single tick."
 
 Naming these openly is itself part of the credibility strategy — it shows we understand the difference between "the demo works" and "the system is complete," which is exactly the distinction our faculty was probing for.
 
