@@ -21,7 +21,13 @@ class CityGrid:
             weather_state["wind_speed"] = 35.0
         elif stress_mode == "cloud_drop":
             weather_state["condition"] = "Cloudy"
-            weather_state["solar_irradiance"] = 100.0
+            time_of_day = weather_state.get("time_of_day", 12.0)
+            if 6 <= time_of_day <= 18:
+                if weather_state.get("solar_irradiance", 0.0) <= 0.0:
+                    import math
+                    weather_state["solar_irradiance"] = 250.0 * math.sin(math.pi * (time_of_day - 6) / 12)
+            else:
+                weather_state["solar_irradiance"] = 0.0
         elif stress_mode == "none":
             if weather_state.get("condition") in ["Cyclone", "Cloudy"]:
                 weather_state["condition"] = "Normal"
