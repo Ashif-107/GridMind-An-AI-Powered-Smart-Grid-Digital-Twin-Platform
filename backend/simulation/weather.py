@@ -23,14 +23,21 @@ class WeatherEngine:
             else:
                 self.solar_irradiance = 0.0
                 
-            # Simulate wind (random fluctuation around a baseline)
-            # Keeping it simple for Phase 1: simple sine wave over the day to give it some movement
             self.wind_speed = 5.0 + 2.0 * math.sin(math.pi * self.time_of_day / 6)
             self.temperature = 20.0 + 10.0 * math.sin(math.pi * (self.time_of_day - 6) / 12)
             
+        elif self.condition == "Cloudy":
+            # 75% drop in solar irradiance
+            if 6 <= self.time_of_day <= 18:
+                self.solar_irradiance = 250 * math.sin(math.pi * (self.time_of_day - 6) / 12)
+            else:
+                self.solar_irradiance = 0.0
+            self.wind_speed = 4.0
+            self.temperature = 22.0
+            
         elif self.condition == "Cyclone":
-            self.solar_irradiance = 0.0 # Cloud cover
-            self.wind_speed = 35.0 # High wind
+            self.solar_irradiance = 0.0 # Heavy cloud cover
+            self.wind_speed = 35.0 # High wind hazard
             self.temperature = 18.0
             
         elif self.condition == "Heat Wave":

@@ -37,10 +37,12 @@ class ValidatorAgent(GridAgent):
             # Constraint 2: Voltage Limits (0.95 p.u. to 1.05 p.u. is typical limit)
             elif v_house1 > 1.045 or v_house2 > 1.045:
                 # Local voltage is already dangerously high (likely due to rooftop solar)
-                # We shouldn't discharge battery into the grid if voltage is already high
                 if proposed_action["type"] == "DISCHARGE_BATTERY":
                     is_valid = False
                     reject_reason = "Action rejected: Discharging battery would cause over-voltage limit violation (>1.05 p.u.)."
+                elif proposed_action["type"] == "CHARGE_BATTERY" and (v_house1 > 1.045 or v_house2 > 1.045):
+                    is_valid = False
+                    reject_reason = f"Action rejected: Rooftop solar over-voltage detected on bus ({max(v_house1, v_house2):.4f} p.u. > 1.045 p.u.)."
                     
             elif v_house1 < 0.955 or v_house2 < 0.955:
                 # Local voltage is already dangerously low

@@ -33,33 +33,7 @@ export default function AgentPipeline({ data }: AgentPipelineProps) {
 
   return (
     <div className="p-6 space-y-8 text-slate-100 pb-20 max-w-6xl mx-auto">
-      {/* Top Banner - Architecture Overview */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/95 to-blue-950/70 p-6 border border-slate-800 shadow-2xl">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/30">
-                Architectural Blueprint
-              </span>
-              <span className="text-xs text-slate-400 font-mono">Vertical Multi-Agent Control Flow</span>
-            </div>
-            <h1 className="text-2xl font-extrabold text-white mt-2">
-              Agent Input / Parameter / Output Architecture
-            </h1>
-            <p className="text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Visualizing how real-time simulation parameters flow through the decision pipeline. Candidate actions proposed by the AI are validated against <strong className="text-blue-300">pandapower AC power-flow constraints</strong> before execution.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 bg-slate-800/90 px-4 py-3 rounded-xl border border-slate-700">
-            <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
-            <div>
-              <div className="text-xs text-slate-400 font-medium">Execution Loop</div>
-              <div className="text-sm font-bold text-emerald-400">AI Proposes → Physics Validates → DER Executes</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      
 
       {/* Stage Filter Buttons */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-800">

@@ -49,3 +49,15 @@ async def trigger_scenario(scenario_name: str):
         
     EngineHolder.engine.weather.set_condition(scenario_name)
     return {"status": "success", "scenario_triggered": scenario_name}
+
+@router.post("/api/scenarios/stress/{scenario_id}")
+async def trigger_stress_scenario(scenario_id: str):
+    if not EngineHolder.engine:
+        raise HTTPException(status_code=503, detail="Engine not ready")
+        
+    valid_modes = ["none", "cloud_drop", "voltage_surge", "transformer_overload", "agri_spike", "cyclone", "ev_rush"]
+    if scenario_id not in valid_modes:
+        raise HTTPException(status_code=400, detail=f"Invalid stress mode. Choose from {valid_modes}")
+        
+    EngineHolder.engine.set_stress_mode(scenario_id)
+    return {"status": "success", "stress_mode": scenario_id}

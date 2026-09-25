@@ -1,0 +1,72 @@
+# Expanded Implementation Plan: Interactive Fault & Stress Scenario Controls
+
+Based on your feedback, we have expanded the **Interactive Grid Stress Controls** to include **6 realistic, high-impact grid stress scenarios** covering physics guardrails, TANGEDCO agricultural subsidies, EV rush hours, and severe weather events.
+
+---
+
+## 🎯 The 6 Interactive Stress Scenarios
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│ 1. ⛅ Cloud Cover Drop          │ Sudden 75% solar generation loss     │
+├─────────────────────────────────┼──────────────────────────────────────┤
+│ 2. ⚡ Rooftop Solar Surge        │ Voltage > 1.048 p.u. (Validator REJECT)│
+├─────────────────────────────────┼──────────────────────────────────────┤
+│ 3. 🔌 Transformer Overload      │ Trafo Loading > 95% (Thermal REJECT) │
+├─────────────────────────────────┼──────────────────────────────────────┤
+│ 4. 🚜 Agricultural Pump Spike   │ Cauvery Delta Pumps load surge       │
+├─────────────────────────────────┼──────────────────────────────────────┤
+│ 5. 🌪️ Cyclone Storm Mode        │ Zero solar + 35m/s wind storm        │
+├─────────────────────────────────┼──────────────────────────────────────┤
+│ 6. 🏎️ EV Rush Hour Peak         │ Tidel Park EV station 200kW surge    │
+└─────────────────────────────────┴──────────────────────────────────────┘
+```
+
+### Detailed Scenario Pipeline Reactions:
+
+1. ⛅ **Cloud Cover Drop (Solar Loss)**
+   - **Physics Stress**: Drops solar irradiance by $75\%$ instantly.
+   - **Pipeline Test**: Forecaster flags `DEFICIT_WARNING` $\rightarrow$ Planner proposes `DISCHARGE_BATTERY` $\rightarrow$ Validator approves.
+
+2. ⚡ **Rooftop Solar Surge (Over-Voltage Rejection Test)**
+   - **Physics Stress**: Injects a massive rooftop solar surge into House 2 bus ($V_{\text{house2}} > 1.048\text{ p.u.}$).
+   - **Pipeline Test**: Pandapower detects over-voltage $\rightarrow$ Validator **REJECTS** battery discharge $\rightarrow$ Triggers Rejection Feedback Loop ($P/2$ retry).
+
+3. 🔌 **Transformer Overload (Thermal Limit Test)**
+   - **Physics Stress**: Spikes local feeder demand, pushing transformer loading $> 95.0\%$.
+   - **Pipeline Test**: Pandapower detects thermal overload $\rightarrow$ Validator **REJECTS** `CHARGE_BATTERY`.
+
+4. 🚜 **Agricultural Pump Spike (TN Free Power Test)**
+   - **Physics Stress**: Simultaneous startup of all Cauvery Delta agricultural pumps ($+150\text{ kW}$ load spike).
+   - **Pipeline Test**: Tests Forecaster & Planner handling TN Agricultural free power demand spikes and subsidy counter tracking.
+
+5. 🌪️ **Cyclone Storm Mode (Renewable Trip & High Wind Hazard)**
+   - **Physics Stress**: Zero solar irradiance + severe wind speed ($35\text{ m/s}$) + low temperature ($18^\circ\text{C}$).
+   - **Pipeline Test**: Tests wind turbine generation ramping up while solar drops to 0, testing hybrid renewable balancing.
+
+6. 🏎️ **EV Charging Rush Hour (Evening Demand Surge)**
+   - **Physics Stress**: Tidel Park EV Charging Station draws maximum capacity ($+200\text{ kW}$ sudden load).
+   - **Pipeline Test**: Tests peak evening grid demand response and dynamic pricing spike (₹8.0/kWh).
+
+7. 🔄 **Reset Grid to Normal**
+   - Clears all active stress injections and restores standard TANGEDCO diurnal curves.
+
+---
+
+## 🏗️ Architectural Integration
+
+### Backend REST API (`backend/`)
+- **[`backend/simulation/engine.py`](file:///d:/Ashif/Projects/GridMind/backend/simulation/engine.py)**: Add active stress mode state (`stress_mode: "none" | "cloud_drop" | "voltage_surge" | "transformer_overload" | "agri_spike" | "cyclone" | "ev_rush"`).
+- **[`backend/api/routes.py`](file:///d:/Ashif/Projects/GridMind/backend/api/routes.py)**: Add REST route `POST /api/scenarios/stress/{scenario_id}`.
+
+### Frontend UI Layer (`frontend/`)
+- **[NEW] [`frontend/src/components/StressConsole.tsx`](file:///d:/Ashif/Projects/GridMind/frontend/src/components/StressConsole.tsx)**: A prominent glassmorphism control bar featuring the 6 scenario trigger buttons with glowing active indicators.
+- **[`frontend/src/components/TopBar.tsx`](file:///d:/Ashif/Projects/GridMind/frontend/src/components/TopBar.tsx)**: Integrate the Stress Console into the dashboard header so it is visible and interactive across all tabs (`Live Grid`, `Analytics`, `AI Command Center`, `Agent Pipeline`).
+
+---
+
+## 🛠️ Verification Plan
+
+1. **API Route Testing**: Execute `POST /api/scenarios/stress/{scenario_id}` for each of the 6 scenarios and verify HTTP 200 response.
+2. **WebSocket Real-time Broadcast**: Verify that selecting any scenario immediately updates live telemetry and triggers the corresponding AI agent decision in real time.
+3. **Visual Verification**: Confirm active scenario badges appear on the top bar and pipeline tabs.

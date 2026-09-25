@@ -10,11 +10,21 @@ class SimulationEngine:
         self.agent_manager = AgentManager()
         self.last_agent_output = {}
         self.last_printed_log_id = -1
+        self.stress_mode = "none"
+        
+    def set_stress_mode(self, mode: str):
+        self.stress_mode = mode
+        if mode == "cyclone":
+            self.weather.set_condition("Cyclone")
+        elif mode == "cloud_drop":
+            self.weather.set_condition("Cloudy")
+        elif mode == "none":
+            self.weather.set_condition("Normal")
         
     def step(self):
         self.weather.step()
         weather_state = self.weather.get_state()
-        self.grid.step(weather_state)
+        self.grid.step(weather_state, stress_mode=self.stress_mode)
         
         # Run AI Pipeline
         grid_state = self.grid.get_state()

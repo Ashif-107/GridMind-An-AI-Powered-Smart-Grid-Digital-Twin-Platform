@@ -8,6 +8,7 @@ import LiveGrid from '@/components/tabs/LiveGrid';
 import Analytics from '@/components/tabs/Analytics';
 import AICommand from '@/components/tabs/AICommand';
 import AgentPipeline from '@/components/tabs/AgentPipeline';
+import StressConsole from '@/components/StressConsole';
 
 export default function Home() {
   const { data, history, connected } = useGridData();
@@ -23,6 +24,7 @@ export default function Home() {
 
       <div className="relative z-10 flex flex-col h-full">
         <TopBar data={data} connected={connected} />
+        <StressConsole currentMode={data?.grid?.stress_mode ?? 'none'} />
         <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
         
         <div className="flex-1 w-full max-w-7xl mx-auto">

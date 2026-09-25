@@ -47,6 +47,7 @@ export interface GridData {
     total_consumption_kw: number;
     net_power_kw: number;
     natural_net_power_kw?: number;
+    stress_mode?: string;
     feeder_metrics?: {
       house1_v_pu: number;
       house2_v_pu: number;
