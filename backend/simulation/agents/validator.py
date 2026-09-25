@@ -17,13 +17,24 @@ class ValidatorAgent(GridAgent):
             context["validated_action"] = proposed_action
             return context
             
-        # Get latest physics metrics from pandapower
-        feeder_metrics = grid_state.get("feeder_metrics")
-        
         is_valid = True
         reject_reason = ""
+        feeder_metrics = grid_state.get("feeder_metrics", {})
         
-        if feeder_metrics:
+        # Constraint 0: Battery State of Charge (SoC) Limits
+        devices = grid_state.get("devices", {})
+        battery_device = next((d for d in devices.values() if "battery" in str(d.get("type", "")).lower()), None)
+        if battery_device:
+            soc = battery_device.get("soc", 1.0)
+            soc_percent = soc * 100.0 if soc <= 1.0 else soc
+            if proposed_action["type"] == "DISCHARGE_BATTERY" and soc_percent <= 1.0:
+                is_valid = False
+                reject_reason = f"Action rejected: Battery is fully depleted ({soc_percent:.1f}% SoC) and cannot discharge."
+            elif proposed_action["type"] == "CHARGE_BATTERY" and soc_percent >= 99.0:
+                is_valid = False
+                reject_reason = f"Action rejected: Battery is fully charged ({soc_percent:.1f}% SoC) and cannot accept energy."
+
+        if is_valid and feeder_metrics:
             v_house1 = feeder_metrics.get("house1_v_pu", 1.0)
             v_house2 = feeder_metrics.get("house2_v_pu", 1.0)
             trafo_load = feeder_metrics.get("trafo_loading_percent", 0.0)

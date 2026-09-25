@@ -56,6 +56,13 @@ class AgentManager:
                 # Command battery and get actual clamped amount
                 actual_amt = central_battery.command(action_type, amt)
                 
+                # If battery is physically incapable of dispatching (0 kW actual), override action to IDLE with clear rejection
+                if action_type != "IDLE" and actual_amt <= 0.001:
+                    soc_percent = central_battery.soc * 100.0
+                    validated_action["type"] = "IDLE"
+                    validated_action["reason"] = f"Action rejected: Battery physical capacity depleted ({soc_percent:.1f}% SoC)."
+                    actual_amt = 0.0
+                
                 # Pass actual amount back into context so explainer (or next tick) knows
                 validated_action["actual_amount_kw"] = actual_amt
                 context["validated_action"] = validated_action
