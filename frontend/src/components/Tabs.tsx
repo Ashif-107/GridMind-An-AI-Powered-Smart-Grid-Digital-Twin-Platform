@@ -9,7 +9,8 @@ export default function Tabs({ activeTab, setActiveTab }: TabsProps) {
   const tabs = [
     { id: 'live', label: 'Live Grid' },
     { id: 'analytics', label: 'Analytics' },
-    { id: 'ai', label: 'AI Command Center' }
+    { id: 'ai', label: 'AI Command Center' },
+    { id: 'pipeline', label: 'Agent Pipeline' }
   ];
 
   return (

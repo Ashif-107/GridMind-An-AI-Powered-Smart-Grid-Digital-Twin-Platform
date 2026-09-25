@@ -20,6 +20,20 @@ export interface AILog {
   timestamp: string;
 }
 
+export interface AgentAction {
+  type: string;
+  amount_kw?: number;
+  actual_amount_kw?: number;
+  reason?: string;
+}
+
+export interface AgentForecast {
+  status: string;
+  current_net: number;
+  predicted_net?: number;
+  trend_kw_per_hour?: number;
+}
+
 export interface GridData {
   weather: {
     time_of_day: number;
@@ -32,6 +46,7 @@ export interface GridData {
     total_generation_kw: number;
     total_consumption_kw: number;
     net_power_kw: number;
+    natural_net_power_kw?: number;
     feeder_metrics?: {
       house1_v_pu: number;
       house2_v_pu: number;
@@ -40,10 +55,8 @@ export interface GridData {
     devices: Record<string, GridDevice>;
   };
   ai_agents?: {
-    forecast?: {
-      status: string;
-      current_net: number;
-    };
+    forecast?: AgentForecast;
+    latest_action?: AgentAction;
     current_price?: number;
     logs: AILog[];
   };

@@ -7,6 +7,7 @@ import Tabs from '@/components/Tabs';
 import LiveGrid from '@/components/tabs/LiveGrid';
 import Analytics from '@/components/tabs/Analytics';
 import AICommand from '@/components/tabs/AICommand';
+import AgentPipeline from '@/components/tabs/AgentPipeline';
 
 export default function Home() {
   const { data, history, connected } = useGridData();
@@ -28,6 +29,7 @@ export default function Home() {
           {activeTab === 'live' && <LiveGrid data={data} />}
           {activeTab === 'analytics' && <Analytics data={data} history={history} />}
           {activeTab === 'ai' && <AICommand data={data} />}
+          {activeTab === 'pipeline' && <AgentPipeline data={data} />}
         </div>
       </div>
     </main>
